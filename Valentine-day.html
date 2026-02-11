@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eternal Valentine | All-in-One</title>
+    <style>
+        /* --- CSS STYLES --- */
+        :root[data-theme="light"] {
+            --bg-color: #fff5f7;
+            --text-color: #4a1c24;
+            --accent-color: #ff4d6d;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --btn-hover: #ff758f;
+        }
+
+        :root[data-theme="dark"] {
+            --bg-color: #1a0f11;
+            --text-color: #ffccd5;
+            --accent-color: #ff4d6d;
+            --card-bg: rgba(45, 20, 24, 0.9);
+            --btn-hover: #c9184a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.4s ease, color 0.4s ease;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .theme-toggle-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        #theme-toggle {
+            background: var(--card-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero {
+            height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        h1 { font-size: clamp(2rem, 8vw, 3.5rem); margin-bottom: 1rem; }
+        .accent { color: var(--accent-color); }
+
+        /* Buttons */
+        .btn-primary, .btn-secondary {
+            padding: 14px 35px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background: var(--accent-color);
+            color: white;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.3);
+        }
+
+        .btn-primary:hover { 
+            background: var(--btn-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 77, 109, 0.4);
+        }
+
+        /* Game Section */
+        #game-container {
+            flex-grow: 1;
+            position: relative;
+            max-width: 800px;
+            width: 90%;
+            margin: 0 auto 50px auto;
+            height: 500px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid var(--accent-color);
+            backdrop-filter: blur(10px);
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 25px;
+            font-size: 1.2rem;
+            background: rgba(255, 77, 109, 0.1);
+        }
+
+        #game-canvas { height: 100%; position: relative; cursor: crosshair; }
+
+        .heart {
+            position: absolute;
+            font-size: 2.5rem;
+            cursor: pointer;
+            user-select: none;
+            animation: floatUp linear forwards;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));
+        }
+
+        @keyframes floatUp {
+            from { transform: translateY(550px) rotate(0deg); }
+            to { transform: translateY(-100px) rotate(20deg); }
+        }
+
+        /* Celebration Overlay */
+        #celebration {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #fireworks-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+        }
+
+        .overlay-content {
+            background: var(--bg-color);
+            padding: 3rem;
+            border-radius: 25px;
+            text-align: center;
+            z-index: 2001;
+            max-width: 400px;
+            box-shadow: 0 0 40px rgba(255, 77, 109, 0.5);
+        }
+
+        /* Helpers */
+        .hidden { display: none !important; }
+        footer { padding: 30px; text-align: center; opacity: 0.7; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <div class="theme-toggle-container">
+        <button id="theme-toggle" title="Toggle Dark/Light Mode">
+            <span id="theme-icon">🌙</span>
+        </button>
+    </div>
+
+    <header class="hero" id="hero-section">
+        <div class="container">
+            <h1>Capture My <span class="accent">Heart</span></h1>
+            <p>Catch as many hearts as you can in 20 seconds!</p>
+            <button id="start-game-btn" class="btn-primary">Start Game</button>
+        </div>
+    </header>
+
+    <section id="game-container" class="hidden">
+        <div class="game-stats">
+            <span>Score: <b id="score">0</b></span>
+            <span>Time: <b id="timer">20</b>s</span>
+        </div>
+        <div id="game-canvas"></div>
+    </section>
+
+    <div id="celebration" class="hidden">
+        <canvas id="fireworks-canvas"></canvas>
+        <div class="overlay-content">
+            <h2 style="font-size: 2rem; margin-bottom: 10px;">Amazing! 💖</h2>
+            <p>You caught <span id="final-score" class="accent" style="font-weight:bold; font-size: 1.5rem;">0</span> hearts!</p>
+            <button onclick="location.reload()" class="btn-secondary">Play Again</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>Built with Vanilla JavaScript & Love</p>
+    </footer>
+
+    <script>
+        /* --- JAVASCRIPT LOGIC --- */
+
+        // 1. Theme Toggle
+        const themeBtn = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        
+        themeBtn.addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            themeIcon.textContent = isDark ? '🌙' : '☀️';
+        });
+
+        // 2. Game State
+        let score = 0;
+        let timeLeft = 20;
+        let gameActive = false;
+        let gameTimer, spawnTimer;
+
+        const startBtn = document.getElementById('start-game-btn');
+        const gameContainer = document.getElementById('game-container');
+        const heroSection = document.getElementById('hero-section');
+        const gameCanvas = document.getElementById('game-canvas');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+
+        // 3. Game Functions
+        function createHeart() {
+            if (!gameActive) return;
+
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.innerHTML = '❤️';
+            
+            const xPos = Math.random() * (gameCanvas.clientWidth - 50);
+            const duration = 2 + Math.random() * 2; // Speed variability
+            
+            heart.style.left = `${xPos}px`;
+            heart.style.animationDuration = `${duration}s`;
+
+            // Click listener
+            heart.addEventListener('mousedown', (e) => {
+                score++;
+                scoreDisplay.textContent = score;
+                heart.style.transform = 'scale(1.5)';
+                heart.style.opacity = '0';
+                setTimeout(() => heart.remove(), 100);
+                e.stopPropagation();
+            });
+
+            gameCanvas.appendChild(heart);
+
+            // Cleanup memory
+            setTimeout(() => {
+                if (heart.parentNode) heart.remove();
+            }, duration * 1000);
+        }
+
+        function startGame() {
+            gameActive = true;
+            score = 0;
+            timeLeft = 20;
+            
+            heroSection.classList.add('hidden');
+            gameContainer.classList.remove('hidden');
+
+            spawnTimer = setInterval(createHeart, 500);
+            
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+                if (timeLeft <= 0) endGame();
+            }, 1000);
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(spawnTimer);
+            clearInterval(gameTimer);
+            
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('celebration').classList.remove('hidden');
+            startFireworks();
+        }
+
+        startBtn.addEventListener('click', startGame);
+
+        // 4. Fireworks Effect (Canvas)
+        function startFireworks() {
+            const canvas = document.getElementById('fireworks-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            let particles = [];
+
+            class Particle {
+                constructor(x, y, color) {
+                    this.x = x;
+                    this.y = y;
+                    this.color = color;
+                    this.velocity = {
+                        x: (Math.random() - 0.5) * 12,
+                        y: (Math.random() - 0.5) * 12
+                    };
+                    this.alpha = 1;
+                }
+                draw() {
+                    ctx.save();
+                    ctx.globalAlpha = this.alpha;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                    ctx.restore();
+                }
+                update() {
+                    this.x += this.velocity.x;
+                    this.y += this.velocity.y;
+                    this.velocity.y += 0.05; // Gravity
+                    this.alpha -= 0.01;
+                }
+            }
+
+            function createExplosion(x, y) {
+                const colors = ['#ff4d6d', '#ff758f', '#fff', '#ffccd5'];
+                for (let i = 0; i < 40; i++) {
+                    particles.push(new Particle(x, y, colors[Math.floor(Math.random() * colors.length)]));
+                }
+            }
+
+            function animate() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach((p, i) => {
+                    if (p.alpha > 0) {
+                        p.update();
+                        p.draw();
+                    } else {
+                        particles.splice(i, 1);
+                    }
+                });
+
+                if (Math.random() < 0.05) {
+                    createExplosion(Math.random() * canvas.width, Math.random() * canvas.height * 0.7);
+                }
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+    </script>
+</body>
+</html>
